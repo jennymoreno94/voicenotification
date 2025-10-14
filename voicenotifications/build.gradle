@@ -1,0 +1,133 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+android {
+    namespace 'com.driver.voicenotifications'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 24
+        targetSdk 34
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
+dependencies {
+    // AndroidX Core
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    
+    // Lifecycle components (Modern stack)
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.6.2'
+    implementation 'androidx.lifecycle:lifecycle-livedata:2.6.2'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.6.2'
+    implementation 'androidx.lifecycle:lifecycle-common-java8:2.6.2'
+    implementation 'androidx.lifecycle:lifecycle-process:2.6.2'
+    
+    // WorkManager for background notifications
+    implementation 'androidx.work:work-runtime:2.9.0'
+    
+    // Concurrent utilities (Java 17 compatible)
+    implementation 'androidx.concurrent:concurrent-futures:1.1.0'
+    
+    // Annotations
+    implementation 'androidx.annotation:annotation:1.7.0'
+    
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'androidx.arch.core:core-testing:2.2.0'
+    testImplementation 'org.mockito:mockito-core:5.5.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.work:work-testing:2.9.0'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.findByName('release')
+                
+                groupId = 'com.driver'
+                artifactId = 'voicenotifications'
+                version = '1.0.0'
+                
+                pom {
+                    name = 'Driver Voice Notifications'
+                    description = 'Librería Android para notificaciones de voz en aplicaciones de gestión de conductores'
+                    url = 'https://github.com/tu-usuario/driver-voice-notifications'
+                    
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'https://opensource.org/licenses/MIT'
+                        }
+                    }
+                    
+                    developers {
+                        developer {
+                            id = 'driver-team'
+                            name = 'Driver Team'
+                            email = 'team@driver.com'
+                        }
+                    }
+                    
+                    scm {
+                        connection = 'scm:git:git://github.com/tu-usuario/driver-voice-notifications.git'
+                        developerConnection = 'scm:git:ssh://github.com/tu-usuario/driver-voice-notifications.git'
+                        url = 'https://github.com/tu-usuario/driver-voice-notifications'
+                    }
+                }
+            }
+        }
+        
+        repositories {
+            // Maven Local (para desarrollo)
+            mavenLocal()
+            
+            // Repositorio privado (descomentar y configurar)
+            /*
+            maven {
+                name = "PrivateRepo"
+                url = uri("https://tu-repositorio.com/maven")
+                credentials {
+                    username = project.findProperty("repoUser") ?: System.getenv("REPO_USER")
+                    password = project.findProperty("repoPassword") ?: System.getenv("REPO_PASSWORD")
+                }
+            }
+            */
+            
+            // GitHub Packages (descomentar y configurar)
+            /*
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/tu-usuario/driver-voice-notifications")
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                }
+            }
+            */
+        }
+    }
+}
