@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.driver.voicenotifications.demo'
+    namespace 'com.notificacionesvoz.demo'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.driver.voicenotifications.demo"
+        applicationId "com.notificacionesvoz.demo"
         minSdk 24
         targetSdk 34
         versionCode 1
@@ -35,7 +35,7 @@ android {
 
 dependencies {
     // Librería de notificaciones de voz
-    implementation project(':voicenotifications')
+    implementation project(':notificacionesvoz')
     
     // AndroidX
     implementation 'androidx.core:core:1.12.0'
