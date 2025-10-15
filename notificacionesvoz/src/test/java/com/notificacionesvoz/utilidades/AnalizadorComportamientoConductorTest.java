@@ -1,7 +1,5 @@
 package com.notificacionesvoz.utilidades;
 
-import com.notificacionesvoz.dominio.modelo.TipoNotificacion;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -62,20 +60,26 @@ public class AnalizadorComportamientoConductorTest {
 
     @Test
     public void testAnalizarAceleracion_frenadaBrusca() {
-        TipoNotificacion tipo = analizador.analizarAceleracion(-9.0f, 2.0f);
-        assertEquals(TipoNotificacion.FRENADA_BRUSCA, tipo);
+        String categoria = analizador.analizarAceleracion(-9.0f, 2.0f);
+        assertEquals("frenada_brusca", categoria);
     }
 
     @Test
     public void testAnalizarAceleracion_aceleracionBrusca() {
-        TipoNotificacion tipo = analizador.analizarAceleracion(5.0f, 2.0f);
-        assertEquals(TipoNotificacion.ACELERACION_BRUSCA, tipo);
+        String categoria = analizador.analizarAceleracion(5.0f, 2.0f);
+        assertEquals("aceleracion_brusca", categoria);
     }
 
     @Test
     public void testAnalizarAceleracion_giroBrusco() {
-        TipoNotificacion tipo = analizador.analizarAceleracion(2.0f, 6.0f);
-        assertEquals(TipoNotificacion.GIRO_BRUSCO, tipo);
+        String categoria = analizador.analizarAceleracion(2.0f, 6.0f);
+        assertEquals("giro_brusco", categoria);
+    }
+
+    @Test
+    public void testAnalizarAceleracion_sinEvento_retornaNull() {
+        String categoria = analizador.analizarAceleracion(2.0f, 2.0f);
+        assertNull(categoria);
     }
 
     @Test

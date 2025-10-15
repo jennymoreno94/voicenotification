@@ -1,12 +1,17 @@
 package com.notificacionesvoz.utilidades;
 
 import androidx.annotation.NonNull;
-
-import com.notificacionesvoz.dominio.modelo.TipoNotificacion;
+import androidx.annotation.Nullable;
 
 /**
  * Analizador de comportamiento del conductor
- * Proporciona lógica para determinar cuándo emitir notificaciones
+ * 
+ * NOTA: Esta es una clase de utilidad OPCIONAL específica para aplicaciones
+ * de gestión de conductores. Si tu aplicación no maneja conductores,
+ * puedes ignorar esta clase completamente.
+ * 
+ * Proporciona lógica para analizar datos de sensores y determinar
+ * cuándo emitir notificaciones relacionadas con la conducción.
  */
 public class AnalizadorComportamientoConductor {
     
@@ -52,18 +57,21 @@ public class AnalizadorComportamientoConductor {
     }
 
     /**
-     * Determina el tipo de notificación basado en los datos del sensor
+     * Determina la categoría de evento basado en los datos del sensor
+     * @param aceleracion Aceleración en m/s²
+     * @param aceleracionLateral Aceleración lateral en m/s²
+     * @return Categoría del evento detectado, o null si no hay evento
      */
-    @NonNull
-    public TipoNotificacion analizarAceleracion(float aceleracion, float aceleracionLateral) {
+    @Nullable
+    public String analizarAceleracion(float aceleracion, float aceleracionLateral) {
         if (esFrenadaBrusca(aceleracion)) {
-            return TipoNotificacion.FRENADA_BRUSCA;
+            return "frenada_brusca";
         } else if (esAceleracionBrusca(aceleracion)) {
-            return TipoNotificacion.ACELERACION_BRUSCA;
+            return "aceleracion_brusca";
         } else if (esGiroBrusco(aceleracionLateral)) {
-            return TipoNotificacion.GIRO_BRUSCO;
+            return "giro_brusco";
         }
-        return TipoNotificacion.PERSONALIZADA;
+        return null;
     }
 
     // Setters para personalizar umbrales

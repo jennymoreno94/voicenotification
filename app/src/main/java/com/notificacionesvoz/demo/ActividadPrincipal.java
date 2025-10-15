@@ -11,8 +11,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 
-import com.notificacionesvoz.dominio.modelo.TipoNotificacion;
 import com.notificacionesvoz.dominio.modelo.ConfiguracionVoz;
+import com.notificacionesvoz.dominio.modelo.NotificacionVoz;
 import com.notificacionesvoz.presentacion.GestorNotificacionesVoz;
 import com.notificacionesvoz.utilidades.AnalizadorComportamientoConductor;
 import com.notificacionesvoz.utilidades.LimitadorNotificaciones;
@@ -21,6 +21,7 @@ import java.util.Locale;
 
 /**
  * Actividad de demostración de la librería de notificaciones de voz
+ * Actualizada para usar la API genérica (sin TipoNotificacion)
  */
 public class ActividadPrincipal extends AppCompatActivity {
 
@@ -113,21 +114,24 @@ public class ActividadPrincipal extends AppCompatActivity {
         botonFrenadaBrusca.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                reproducirNotificacion(TipoNotificacion.FRENADA_BRUSCA);
+                reproducirNotificacion("frenada_brusca", 
+                    "Frenada brusca detectada. Conduzca con precaución.");
             }
         });
 
         botonAceleracionBrusca.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                reproducirNotificacion(TipoNotificacion.ACELERACION_BRUSCA);
+                reproducirNotificacion("aceleracion_brusca",
+                    "Aceleración brusca detectada. Acelere gradualmente.");
             }
         });
 
         botonGiroBrusco.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                reproducirNotificacion(TipoNotificacion.GIRO_BRUSCO);
+                reproducirNotificacion("giro_brusco",
+                    "Giro brusco detectado. Reduzca la velocidad en las curvas.");
             }
         });
 
@@ -148,23 +152,41 @@ public class ActividadPrincipal extends AppCompatActivity {
     }
 
     private void reproducirExcesoVelocidad() {
-        if (limitador.intentarNotificar(TipoNotificacion.EXCESO_VELOCIDAD)) {
-            gestorVoz.reproducirExcesoVelocidad(120, 80);
+        if (limitador.intentarNotificar("exceso_velocidad")) {
+            // Usar la nueva API genérica con mensaje personalizado
+            String mensaje = String.format(
+                "Atención, está conduciendo a %d kilómetros por hora. El límite es %d.",
+                120, 80);
+            
+            NotificacionVoz notificacion = new NotificacionVoz.Constructor()
+                .establecerMensaje(mensaje)
+                .establecerCategoria("exceso_velocidad")
+                .establecerPrioridad(NotificacionVoz.Prioridad.ALTA)
+                .construir();
+            
+            gestorVoz.reproducir(notificacion);
             actualizarEstado();
         } else {
-            long tiempoRestante = limitador.obtenerTiempoRestante(TipoNotificacion.EXCESO_VELOCIDAD);
+            long tiempoRestante = limitador.obtenerEnfriamientoRestante("exceso_velocidad");
             Toast.makeText(this, 
                 "Espere " + (tiempoRestante / 1000) + " segundos", 
                 Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void reproducirNotificacion(TipoNotificacion tipo) {
-        if (limitador.intentarNotificar(tipo)) {
-            gestorVoz.reproducir(tipo);
+    private void reproducirNotificacion(String categoria, String mensaje) {
+        if (limitador.intentarNotificar(categoria)) {
+            // Usar la nueva API genérica
+            NotificacionVoz notificacion = new NotificacionVoz.Constructor()
+                .establecerMensaje(mensaje)
+                .establecerCategoria(categoria)
+                .establecerPrioridad(NotificacionVoz.Prioridad.ALTA)
+                .construir();
+            
+            gestorVoz.reproducir(notificacion);
             actualizarEstado();
         } else {
-            long tiempoRestante = limitador.obtenerTiempoRestante(tipo);
+            long tiempoRestante = limitador.obtenerEnfriamientoRestante(categoria);
             Toast.makeText(this, 
                 "Espere " + (tiempoRestante / 1000) + " segundos", 
                 Toast.LENGTH_SHORT).show();
@@ -191,7 +213,8 @@ public class ActividadPrincipal extends AppCompatActivity {
             @Override
             public void run() {
                 if (analizador.esFrenadaBrusca(-9.0f)) {
-                    reproducirNotificacion(TipoNotificacion.FRENADA_BRUSCA);
+                    reproducirNotificacion("frenada_brusca",
+                        "Frenada brusca detectada. Conduzca con precaución.");
                 }
             }
         }, 5000);
@@ -201,7 +224,8 @@ public class ActividadPrincipal extends AppCompatActivity {
             @Override
             public void run() {
                 if (analizador.esAceleracionBrusca(5.0f)) {
-                    reproducirNotificacion(TipoNotificacion.ACELERACION_BRUSCA);
+                    reproducirNotificacion("aceleracion_brusca",
+                        "Aceleración brusca detectada. Acelere gradualmente.");
                 }
             }
         }, 9000);

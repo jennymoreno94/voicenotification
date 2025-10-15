@@ -7,7 +7,6 @@ import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
-import com.notificacionesvoz.dominio.modelo.TipoNotificacion;
 import com.notificacionesvoz.dominio.modelo.NotificacionVoz;
 import com.notificacionesvoz.presentacion.TrabajadorNotificacionesVoz;
 
@@ -29,8 +28,12 @@ public class ProgramadorNotificacionesVoz {
      * Programa una notificación para ser reproducida después de un retraso
      */
     public void programarNotificacion(@NonNull NotificacionVoz notificacion, long retrasoMs) {
+        String categoria = notificacion.obtenerCategoria() != null 
+            ? notificacion.obtenerCategoria() 
+            : "notificacion";
+        
         Data datosEntrada = new Data.Builder()
-                .putString(TrabajadorNotificacionesVoz.CLAVE_TIPO_NOTIFICACION, notificacion.obtenerTipo().name())
+                .putString(TrabajadorNotificacionesVoz.CLAVE_CATEGORIA, categoria)
                 .putString(TrabajadorNotificacionesVoz.CLAVE_MENSAJE, notificacion.obtenerMensaje())
                 .putString(TrabajadorNotificacionesVoz.CLAVE_PRIORIDAD, notificacion.obtenerPrioridad().name())
                 .build();
@@ -38,17 +41,18 @@ public class ProgramadorNotificacionesVoz {
         OneTimeWorkRequest solicitudTrabajo = new OneTimeWorkRequest.Builder(TrabajadorNotificacionesVoz.class)
                 .setInputData(datosEntrada)
                 .setInitialDelay(retrasoMs, TimeUnit.MILLISECONDS)
-                .addTag(notificacion.obtenerTipo().name())
+                .addTag(categoria)
                 .build();
 
         gestorTrabajos.enqueue(solicitudTrabajo);
     }
 
     /**
-     * Cancela todas las notificaciones programadas de un tipo específico
+     * Cancela todas las notificaciones programadas de una categoría específica
+     * @param categoria Categoría de las notificaciones a cancelar
      */
-    public void cancelarNotificaciones(@NonNull TipoNotificacion tipo) {
-        gestorTrabajos.cancelAllWorkByTag(tipo.name());
+    public void cancelarNotificaciones(@NonNull String categoria) {
+        gestorTrabajos.cancelAllWorkByTag(categoria);
     }
 
     /**

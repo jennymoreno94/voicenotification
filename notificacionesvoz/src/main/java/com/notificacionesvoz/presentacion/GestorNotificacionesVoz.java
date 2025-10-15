@@ -8,9 +8,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.notificacionesvoz.datos.fabrica.FabricaMensajesNotificacion;
 import com.notificacionesvoz.datos.repositorio.RepositorioNotificacionesVozImpl;
-import com.notificacionesvoz.dominio.modelo.TipoNotificacion;
 import com.notificacionesvoz.dominio.modelo.ConfiguracionVoz;
 import com.notificacionesvoz.dominio.modelo.NotificacionVoz;
 import com.notificacionesvoz.dominio.repositorio.RepositorioNotificacionesVoz;
@@ -18,8 +16,11 @@ import com.notificacionesvoz.dominio.casosuso.ConfigurarVozCasoUso;
 import com.notificacionesvoz.dominio.casosuso.ReproducirNotificacionCasoUso;
 
 /**
- * Punto de entrada principal de la librería
- * Gestiona el ciclo de vida y proporciona API simple para los consumidores
+ * Gestor principal de notificaciones de voz
+ * Punto de entrada de la librería - Completamente genérico y transversal
+ * 
+ * Gestiona el ciclo de vida y proporciona una API simple para reproducir
+ * cualquier tipo de notificación de voz en cualquier dominio de negocio
  */
 public class GestorNotificacionesVoz implements DefaultLifecycleObserver {
     
@@ -73,6 +74,7 @@ public class GestorNotificacionesVoz implements DefaultLifecycleObserver {
 
     /**
      * Reproduce una notificación de voz
+     * @param notificacion Notificación a reproducir
      */
     public void reproducir(@NonNull NotificacionVoz notificacion) {
         try {
@@ -83,27 +85,22 @@ public class GestorNotificacionesVoz implements DefaultLifecycleObserver {
     }
 
     /**
-     * Reproduce una notificación con mensaje predefinido
+     * Método de conveniencia para reproducir un mensaje simple
+     * @param mensaje Texto a reproducir por voz
      */
-    public void reproducir(@NonNull TipoNotificacion tipo) {
-        String mensaje = FabricaMensajesNotificacion.obtenerMensajeEspanol(tipo);
-        NotificacionVoz notificacion = new NotificacionVoz.Constructor()
-                .establecerTipo(tipo)
-                .establecerMensaje(mensaje)
-                .establecerPrioridad(NotificacionVoz.Prioridad.NORMAL)
-                .construir();
-        reproducir(notificacion);
+    public void reproducir(@NonNull String mensaje) {
+        reproducir(mensaje, NotificacionVoz.Prioridad.NORMAL);
     }
 
     /**
-     * Reproduce notificación de exceso de velocidad con datos
+     * Método de conveniencia para reproducir un mensaje con prioridad
+     * @param mensaje Texto a reproducir por voz
+     * @param prioridad Nivel de prioridad
      */
-    public void reproducirExcesoVelocidad(int velocidadActual, int limiteVelocidad) {
-        String mensaje = FabricaMensajesNotificacion.obtenerMensajeExcesoVelocidad(velocidadActual, limiteVelocidad);
+    public void reproducir(@NonNull String mensaje, @NonNull NotificacionVoz.Prioridad prioridad) {
         NotificacionVoz notificacion = new NotificacionVoz.Constructor()
-                .establecerTipo(TipoNotificacion.EXCESO_VELOCIDAD)
                 .establecerMensaje(mensaje)
-                .establecerPrioridad(NotificacionVoz.Prioridad.ALTA)
+                .establecerPrioridad(prioridad)
                 .construir();
         reproducir(notificacion);
     }

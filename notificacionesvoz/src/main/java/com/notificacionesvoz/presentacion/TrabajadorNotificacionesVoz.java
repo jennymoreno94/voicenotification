@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.notificacionesvoz.dominio.modelo.TipoNotificacion;
 import com.notificacionesvoz.dominio.modelo.NotificacionVoz;
 
 /**
@@ -15,7 +14,7 @@ import com.notificacionesvoz.dominio.modelo.NotificacionVoz;
  */
 public class TrabajadorNotificacionesVoz extends Worker {
     
-    public static final String CLAVE_TIPO_NOTIFICACION = "tipo_notificacion";
+    public static final String CLAVE_CATEGORIA = "categoria";
     public static final String CLAVE_MENSAJE = "mensaje";
     public static final String CLAVE_PRIORIDAD = "prioridad";
 
@@ -27,22 +26,21 @@ public class TrabajadorNotificacionesVoz extends Worker {
     @Override
     public Result doWork() {
         try {
-            String tipoTexto = getInputData().getString(CLAVE_TIPO_NOTIFICACION);
+            String categoria = getInputData().getString(CLAVE_CATEGORIA);
             String mensaje = getInputData().getString(CLAVE_MENSAJE);
             String prioridadTexto = getInputData().getString(CLAVE_PRIORIDAD);
             
-            if (tipoTexto == null || mensaje == null) {
+            if (mensaje == null) {
                 return Result.failure();
             }
             
-            TipoNotificacion tipo = TipoNotificacion.valueOf(tipoTexto);
             NotificacionVoz.Prioridad prioridad = prioridadTexto != null 
                 ? NotificacionVoz.Prioridad.valueOf(prioridadTexto)
                 : NotificacionVoz.Prioridad.NORMAL;
             
             NotificacionVoz notificacion = new NotificacionVoz.Constructor()
-                    .establecerTipo(tipo)
                     .establecerMensaje(mensaje)
+                    .establecerCategoria(categoria)
                     .establecerPrioridad(prioridad)
                     .construir();
             

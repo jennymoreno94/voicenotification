@@ -12,35 +12,39 @@ public class NotificacionVozTest {
     @Test
     public void testConstructor_conDatosValidos_creaNotificacion() {
         NotificacionVoz notificacion = new NotificacionVoz.Constructor()
-                .establecerTipo(TipoNotificacion.EXCESO_VELOCIDAD)
                 .establecerMensaje("Mensaje de prueba")
                 .establecerPrioridad(NotificacionVoz.Prioridad.ALTA)
+                .establecerCategoria("test")
                 .construir();
 
         assertNotNull(notificacion);
-        assertEquals(TipoNotificacion.EXCESO_VELOCIDAD, notificacion.obtenerTipo());
         assertEquals("Mensaje de prueba", notificacion.obtenerMensaje());
         assertEquals(NotificacionVoz.Prioridad.ALTA, notificacion.obtenerPrioridad());
+        assertEquals("test", notificacion.obtenerCategoria());
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testConstructor_sinTipo_lanzaExcepcion() {
-        new NotificacionVoz.Constructor()
+    @Test
+    public void testConstructor_sinCategoria_creaNotificacion() {
+        // La categoría es opcional
+        NotificacionVoz notificacion = new NotificacionVoz.Constructor()
                 .establecerMensaje("Mensaje de prueba")
                 .construir();
+        
+        assertNotNull(notificacion);
+        assertNull(notificacion.obtenerCategoria());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testConstructor_sinMensaje_lanzaExcepcion() {
         new NotificacionVoz.Constructor()
-                .establecerTipo(TipoNotificacion.EXCESO_VELOCIDAD)
+                .establecerCategoria("test")
                 .construir();
     }
 
     @Test(expected = IllegalStateException.class)
     public void testConstructor_conMensajeVacio_lanzaExcepcion() {
         new NotificacionVoz.Constructor()
-                .establecerTipo(TipoNotificacion.EXCESO_VELOCIDAD)
+                .establecerCategoria("test")
                 .establecerMensaje("")
                 .construir();
     }
@@ -58,14 +62,14 @@ public class NotificacionVozTest {
         long marcaTiempo = System.currentTimeMillis();
         
         NotificacionVoz notificacion1 = new NotificacionVoz.Constructor()
-                .establecerTipo(TipoNotificacion.EXCESO_VELOCIDAD)
                 .establecerMensaje("Prueba")
+                .establecerCategoria("test")
                 .establecerMarcaTiempo(marcaTiempo)
                 .construir();
 
         NotificacionVoz notificacion2 = new NotificacionVoz.Constructor()
-                .establecerTipo(TipoNotificacion.EXCESO_VELOCIDAD)
                 .establecerMensaje("Prueba")
+                .establecerCategoria("test")
                 .establecerMarcaTiempo(marcaTiempo)
                 .construir();
 
