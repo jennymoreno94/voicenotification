@@ -3,7 +3,8 @@ package com.notificacionesvoz.presentacion;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -21,7 +22,7 @@ import com.notificacionesvoz.dominio.casosuso.ReproducirNotificacionCasoUso;
  * Punto de entrada principal de la librería
  * Gestiona el ciclo de vida y proporciona API simple para los consumidores
  */
-public class GestorNotificacionesVoz implements DefaultLifecycleObserver {
+public class GestorNotificacionesVoz implements LifecycleEventObserver {
     
     private static volatile GestorNotificacionesVoz instancia;
     
@@ -144,18 +145,17 @@ public class GestorNotificacionesVoz implements DefaultLifecycleObserver {
         return eventosLiveData;
     }
 
-    // Callbacks del ciclo de vida
+    // Callback del ciclo de vida
     @Override
-    public void onPause(@NonNull LifecycleOwner propietario) {
-        // Pausar notificaciones cuando la app va a background
-        detener();
-    }
-
-    @Override
-    public void onDestroy(@NonNull LifecycleOwner propietario) {
-        // Liberar recursos
-        repositorio.finalizar();
-        propietario.getLifecycle().removeObserver(this);
+    public void onStateChanged(@NonNull LifecycleOwner propietario, @NonNull Lifecycle.Event evento) {
+        if (evento == Lifecycle.Event.ON_PAUSE) {
+            // Pausar notificaciones cuando la app va a background
+            detener();
+        } else if (evento == Lifecycle.Event.ON_DESTROY) {
+            // Liberar recursos
+            repositorio.finalizar();
+            propietario.getLifecycle().removeObserver(this);
+        }
     }
 
     /**

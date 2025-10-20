@@ -31,6 +31,13 @@ android {
         buildConfig = true
     }
 
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+
     sourceSets {
         main {
             java {
@@ -41,57 +48,52 @@ android {
 }
 
 dependencies {
-    // AndroidX Core
-    implementation 'androidx.core:core:1.12.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    
-    // Lifecycle components (Modern stack)
-    implementation 'androidx.lifecycle:lifecycle-runtime:2.6.2'
-    implementation 'androidx.lifecycle:lifecycle-livedata:2.6.2'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.6.2'
-    implementation 'androidx.lifecycle:lifecycle-common-java8:2.6.2'
-    implementation 'androidx.lifecycle:lifecycle-process:2.6.2'
-    
-    // WorkManager for background notifications
-    implementation 'androidx.work:work-runtime:2.9.0'
-    
-    // Concurrent utilities (Java 17 compatible)
-    implementation 'androidx.concurrent:concurrent-futures:1.1.0'
-    
+    // AndroidX Core - API porque se expone en la interfaz pública
+    api 'androidx.core:core:1.12.0'
+    api 'androidx.appcompat:appcompat:1.6.1'
+
+    // Lifecycle components - Versión 2.6.2 igual que SmartRoute
+    api 'androidx.lifecycle:lifecycle-runtime:2.6.2'
+    api 'androidx.lifecycle:lifecycle-livedata:2.6.2'
+    api 'androidx.lifecycle:lifecycle-common:2.6.2'
+
+    // WorkManager - API porque se usa en la interfaz pública
+    api 'androidx.work:work-runtime:2.9.0'
+
+    // Concurrent utilities
+    api 'androidx.concurrent:concurrent-futures:1.1.0'
+
     // Annotations
-    implementation 'androidx.annotation:annotation:1.7.0'
-    
+    api 'androidx.annotation:annotation:1.7.0'
+
     // Testing
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'androidx.arch.core:core-testing:2.2.0'
-    testImplementation 'org.mockito:mockito-core:5.5.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation 'androidx.work:work-testing:2.9.0'
 }
 
 afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
-                from components.findByName('release')
-                
+                from components.release
+
                 groupId = 'com.notificacionesvoz'
                 artifactId = 'notificacionesvoz'
                 version = '1.0.0'
-                
+
                 pom {
                     name = 'Notificaciones Voz'
-                    description = 'LibrerÃ­a Android para notificaciones de voz'
+                    description = 'Librería Android para notificaciones de voz'
                     url = 'https://github.com/jennymoreno94/voicenotification'
-                    
+
                     licenses {
                         license {
                             name = 'MIT License'
                             url = 'https://opensource.org/licenses/MIT'
                         }
                     }
-                    
+
                     developers {
                         developer {
                             id = 'driver-team'
@@ -99,7 +101,7 @@ afterEvaluate {
                             email = 'team@driver.com'
                         }
                     }
-                    
+
                     scm {
                         connection = 'scm:git:git://github.com/jennymoreno94/voicenotification.git'
                         developerConnection = 'scm:git:ssh://github.com/jennymoreno94/voicenotification.git'
@@ -108,34 +110,9 @@ afterEvaluate {
                 }
             }
         }
-        
+
         repositories {
-            // Maven Local (para desarrollo)
             mavenLocal()
-            
-            // Repositorio privado (descomentar y configurar)
-            /*
-            maven {
-                name = "PrivateRepo"
-                url = uri("https://tu-repositorio.com/maven")
-                credentials {
-                    username = project.findProperty("repoUser") ?: System.getenv("REPO_USER")
-                    password = project.findProperty("repoPassword") ?: System.getenv("REPO_PASSWORD")
-                }
-            }
-            */
-            
-            // GitHub Packages (descomentar y configurar)
-            /*
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/jennymoreno94/voicenotification")
-                credentials {
-                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
-                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-                }
-            }
-            */
         }
     }
 }
