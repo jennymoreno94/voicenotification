@@ -1,7 +1,5 @@
 package com.notificacionesvoz.utilidades;
 
-import com.notificacionesvoz.dominio.modelo.TipoNotificacion;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,61 +14,76 @@ public class LimitadorNotificacionesTest {
 
     @Before
     public void setUp() {
-        limitador = new LimitadorNotificaciones(1000); // 1 segundo de espera
-    }
-
-    @Test
-    public void testPuedeNotificar_primerVez_retornaVerdadero() {
-        assertTrue(limitador.puedeNotificar(TipoNotificacion.EXCESO_VELOCIDAD));
-    }
-
-    @Test
-    public void testPuedeNotificar_dentroDelTiempoEspera_retornaFalso() {
-        limitador.registrarNotificacion(TipoNotificacion.EXCESO_VELOCIDAD);
-        assertFalse(limitador.puedeNotificar(TipoNotificacion.EXCESO_VELOCIDAD));
-    }
-
-    @Test
-    public void testPuedeNotificar_despuesDelTiempoEspera_retornaVerdadero() throws InterruptedException {
-        limitador.registrarNotificacion(TipoNotificacion.EXCESO_VELOCIDAD);
-        Thread.sleep(1100); // Esperar más que el tiempo de espera
-        assertTrue(limitador.puedeNotificar(TipoNotificacion.EXCESO_VELOCIDAD));
+        limitador = new LimitadorNotificaciones(1000); // 1 segundo de enfriamiento
     }
 
     @Test
     public void testIntentarNotificar_primerVez_retornaVerdadero() {
-        assertTrue(limitador.intentarNotificar(TipoNotificacion.EXCESO_VELOCIDAD));
+        assertTrue(limitador.intentarNotificar("alerta"));
     }
 
     @Test
-    public void testIntentarNotificar_dentroDelTiempoEspera_retornaFalso() {
-        limitador.intentarNotificar(TipoNotificacion.EXCESO_VELOCIDAD);
-        assertFalse(limitador.intentarNotificar(TipoNotificacion.EXCESO_VELOCIDAD));
+    public void testIntentarNotificar_dentroDelEnfriamiento_retornaFalso() {
+        limitador.intentarNotificar("alerta");
+        assertFalse(limitador.intentarNotificar("alerta"));
+    }
+
+    @Test
+    public void testIntentarNotificar_despuesDelEnfriamiento_retornaVerdadero() throws InterruptedException {
+        limitador.intentarNotificar("alerta");
+        Thread.sleep(1100); // Esperar más que el período de enfriamiento
+        assertTrue(limitador.intentarNotificar("alerta"));
+    }
+
+    @Test
+    public void testIntentarNotificar_sinCategoria_usaPredeterminada() {
+        assertTrue(limitador.intentarNotificar());
+        assertFalse(limitador.intentarNotificar()); // Segunda vez debe fallar
     }
 
     @Test
     public void testReiniciar_permiteNotificacionInmediata() {
-        limitador.registrarNotificacion(TipoNotificacion.EXCESO_VELOCIDAD);
-        assertFalse(limitador.puedeNotificar(TipoNotificacion.EXCESO_VELOCIDAD));
+        limitador.intentarNotificar("alerta");
+        assertFalse(limitador.intentarNotificar("alerta"));
         
-        limitador.reiniciar(TipoNotificacion.EXCESO_VELOCIDAD);
-        assertTrue(limitador.puedeNotificar(TipoNotificacion.EXCESO_VELOCIDAD));
+        limitador.reiniciar("alerta");
+        assertTrue(limitador.intentarNotificar("alerta"));
     }
 
     @Test
-    public void testObtenerTiempoRestante_retornaValorCorrecto() {
-        limitador.registrarNotificacion(TipoNotificacion.EXCESO_VELOCIDAD);
-        long tiempoRestante = limitador.obtenerTiempoRestante(TipoNotificacion.EXCESO_VELOCIDAD);
+    public void testObtenerEnfriamientoRestante_retornaValorCorrecto() {
+        limitador.intentarNotificar("alerta");
+        long tiempoRestante = limitador.obtenerEnfriamientoRestante("alerta");
         
         assertTrue(tiempoRestante > 0);
         assertTrue(tiempoRestante <= 1000);
     }
 
     @Test
-    public void testDiferentesTipos_tiemposEsperaIndependientes() {
-        limitador.registrarNotificacion(TipoNotificacion.EXCESO_VELOCIDAD);
+    public void testObtenerEnfriamientoRestante_sinNotificacion_retornaCero() {
+        long tiempoRestante = limitador.obtenerEnfriamientoRestante("nueva_categoria");
+        assertEquals(0, tiempoRestante);
+    }
+
+    @Test
+    public void testDiferentesCategorias_enfriamientosIndependientes() {
+        limitador.intentarNotificar("alerta");
         
-        assertFalse(limitador.puedeNotificar(TipoNotificacion.EXCESO_VELOCIDAD));
-        assertTrue(limitador.puedeNotificar(TipoNotificacion.FRENADA_BRUSCA));
+        assertFalse(limitador.intentarNotificar("alerta"));
+        assertTrue(limitador.intentarNotificar("recordatorio")); // Diferente categoría
+    }
+
+    @Test
+    public void testReiniciarTodo_limpiaTodasLasCategorias() {
+        limitador.intentarNotificar("alerta");
+        limitador.intentarNotificar("recordatorio");
+        
+        assertFalse(limitador.intentarNotificar("alerta"));
+        assertFalse(limitador.intentarNotificar("recordatorio"));
+        
+        limitador.reiniciarTodo();
+        
+        assertTrue(limitador.intentarNotificar("alerta"));
+        assertTrue(limitador.intentarNotificar("recordatorio"));
     }
 }

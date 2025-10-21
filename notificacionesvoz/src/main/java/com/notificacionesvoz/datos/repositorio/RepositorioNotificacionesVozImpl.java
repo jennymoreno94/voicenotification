@@ -99,7 +99,11 @@ public class RepositorioNotificacionesVozImpl implements RepositorioNotificacion
             return;
         }
 
-        String idExpresion = notificacion.obtenerTipo().name() + "_" + notificacion.obtenerMarcaTiempo();
+        // Generar ID único usando categoría (si existe) o timestamp
+        String categoria = notificacion.obtenerCategoria() != null 
+            ? notificacion.obtenerCategoria() 
+            : "notificacion";
+        String idExpresion = categoria + "_" + notificacion.obtenerMarcaTiempo();
         
         HashMap<String, String> parametros = new HashMap<>();
         parametros.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, idExpresion);

@@ -1,103 +1,98 @@
 package com.notificacionesvoz.utilidades;
 
-import androidx.annotation.NonNull;
-
-import com.notificacionesvoz.dominio.modelo.TipoNotificacion;
+import androidx.annotation.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Limitador para evitar spam de notificaciones
- * Implementa cooldown entre notificaciones del mismo tipo
+ * Limitador de notificaciones para prevenir spam
+ * Implementa un sistema de throttling por categoría de notificación
+ * Completamente genérico y transversal a cualquier dominio de negocio
  */
 public class LimitadorNotificaciones {
     
-    private static final long TIEMPO_ESPERA_PREDETERMINADO_MS = 30000; // 30 segundos
+    private final long periodoEnfriamiento; // en milisegundos
+    private final Map<String, Long> ultimasNotificaciones;
+    private static final String CATEGORIA_PREDETERMINADA = "general";
     
-    private final Map<TipoNotificacion, Long> ultimaNotificacion;
-    private long tiempoEsperaMs;
-
-    public LimitadorNotificaciones() {
-        this(TIEMPO_ESPERA_PREDETERMINADO_MS);
-    }
-
-    public LimitadorNotificaciones(long tiempoEsperaMs) {
-        this.tiempoEsperaMs = tiempoEsperaMs;
-        this.ultimaNotificacion = new HashMap<>();
+    /**
+     * Constructor
+     * @param periodoEnfriamiento Tiempo mínimo entre notificaciones de la misma categoría (ms)
+     */
+    public LimitadorNotificaciones(long periodoEnfriamiento) {
+        this.periodoEnfriamiento = periodoEnfriamiento;
+        this.ultimasNotificaciones = new HashMap<>();
     }
 
     /**
-     * Verifica si se puede enviar una notificación
-     * @param tipo Tipo de notificación
-     * @return true si ha pasado el tiempo de espera
+     * Intenta notificar. Retorna true si se puede notificar, false si aún está en cooldown
+     * @param categoria Categoría de la notificación (ej: "alerta", "recordatorio", "info")
      */
-    public boolean puedeNotificar(@NonNull TipoNotificacion tipo) {
-        Long ultimaVez = ultimaNotificacion.get(tipo);
-        if (ultimaVez == null) {
+    public boolean intentarNotificar(@Nullable String categoria) {
+        String clave = categoria != null ? categoria : CATEGORIA_PREDETERMINADA;
+        long ahora = System.currentTimeMillis();
+        Long ultimaNotificacion = ultimasNotificaciones.get(clave);
+        
+        if (ultimaNotificacion == null || (ahora - ultimaNotificacion) >= periodoEnfriamiento) {
+            ultimasNotificaciones.put(clave, ahora);
             return true;
         }
         
-        long tiempoActual = System.currentTimeMillis();
-        return (tiempoActual - ultimaVez) >= tiempoEsperaMs;
-    }
-
-    /**
-     * Registra que se ha enviado una notificación
-     */
-    public void registrarNotificacion(@NonNull TipoNotificacion tipo) {
-        ultimaNotificacion.put(tipo, System.currentTimeMillis());
-    }
-
-    /**
-     * Intenta notificar y registra si es exitoso
-     * @return true si se permitió la notificación
-     */
-    public boolean intentarNotificar(@NonNull TipoNotificacion tipo) {
-        if (puedeNotificar(tipo)) {
-            registrarNotificacion(tipo);
-            return true;
-        }
         return false;
     }
-
+    
     /**
-     * Resetea el cooldown para un tipo específico
+     * Intenta notificar sin categoría (usa categoría predeterminada)
      */
-    public void reiniciar(@NonNull TipoNotificacion tipo) {
-        ultimaNotificacion.remove(tipo);
+    public boolean intentarNotificar() {
+        return intentarNotificar(null);
     }
 
     /**
-     * Resetea todos los cooldowns
+     * Obtiene el tiempo restante de enfriamiento para una categoría
+     * @param categoria Categoría de la notificación
+     * @return Milisegundos restantes, 0 si puede notificar
      */
-    public void reiniciarTodo() {
-        ultimaNotificacion.clear();
-    }
-
-    /**
-     * Configura el tiempo de espera
-     */
-    public void establecerTiempoEsperaMs(long tiempoEsperaMs) {
-        this.tiempoEsperaMs = tiempoEsperaMs;
-    }
-
-    public long obtenerTiempoEsperaMs() {
-        return tiempoEsperaMs;
-    }
-
-    /**
-     * Obtiene el tiempo restante de espera para un tipo
-     * @return milisegundos restantes, 0 si ya puede notificar
-     */
-    public long obtenerTiempoRestante(@NonNull TipoNotificacion tipo) {
-        Long ultimaVez = ultimaNotificacion.get(tipo);
-        if (ultimaVez == null) {
+    public long obtenerEnfriamientoRestante(@Nullable String categoria) {
+        String clave = categoria != null ? categoria : CATEGORIA_PREDETERMINADA;
+        Long ultimaNotificacion = ultimasNotificaciones.get(clave);
+        if (ultimaNotificacion == null) {
             return 0;
         }
         
-        long tiempoTranscurrido = System.currentTimeMillis() - ultimaVez;
-        long tiempoRestante = tiempoEsperaMs - tiempoTranscurrido;
-        return Math.max(0, tiempoRestante);
+        long tiempoTranscurrido = System.currentTimeMillis() - ultimaNotificacion;
+        long restante = periodoEnfriamiento - tiempoTranscurrido;
+        return Math.max(0, restante);
+    }
+    
+    /**
+     * Obtiene el tiempo restante de enfriamiento para la categoría predeterminada
+     */
+    public long obtenerEnfriamientoRestante() {
+        return obtenerEnfriamientoRestante(null);
+    }
+    
+    /**
+     * Reinicia el limitador para una categoría específica
+     * @param categoria Categoría a reiniciar
+     */
+    public void reiniciar(@Nullable String categoria) {
+        String clave = categoria != null ? categoria : CATEGORIA_PREDETERMINADA;
+        ultimasNotificaciones.remove(clave);
+    }
+    
+    /**
+     * Reinicia todos los limitadores
+     */
+    public void reiniciarTodo() {
+        ultimasNotificaciones.clear();
+    }
+    
+    /**
+     * Obtiene el período de enfriamiento configurado
+     */
+    public long obtenerPeriodoEnfriamiento() {
+        return periodoEnfriamiento;
     }
 }
